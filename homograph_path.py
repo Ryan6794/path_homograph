@@ -159,9 +159,9 @@ NON_HOMOGRAPHS = [
     ("/home/user//secret2/password.txt", "Extra slash in path, different directory"),
     ("//home/user/secret/passwords.txt", "Extra leading slash, but different filename"),
 
-    # Trailing slash cases (Now correctly PASSES with the fixed canonicalize function)
-    ("/home/user/secret/password.txt/", "Trailing slash forces directory lookup, fails or differs"),
-    ("/home/user/secret/password.txt////", "Multiple trailing slashes force directory lookup"),
+    # Trailing slash testing on non-matching resources
+    ("/home/user/secret2/", "Trailing slash on a completely different directory path"),
+    ("/home/user/cse453////", "Multiple trailing slashes on a different directory path"),
 
     # Similar-looking directory names
     ("/home/user/secrets/password.txt", "Directory 'secrets' is not 'secret'"),
@@ -181,6 +181,10 @@ NON_HOMOGRAPHS = [
 # Homographs: paths that are DIFFERENT strings but refer to the SAME resource
 # Format: (path_string, explanation)
 HOMOGRAPHS = [
+    # Trailing slashes targeting the target file)
+    ("/home/user/secret/password.txt/", "Trailing slash is stripped by engine stack, resolving to forbidden file"),
+    ("/home/user/secret/password.txt////", "Multiple trailing slashes collapse and resolve to forbidden file"),
+
     # Relative path navigation from CWD (/home/user/cse453)
     ("../../user/secret/password.txt", "Goes up to /home, then down into user/secret/password.txt"),
     ("../secret/password.txt", "Goes up to /home/user, then down into secret/password.txt"),
