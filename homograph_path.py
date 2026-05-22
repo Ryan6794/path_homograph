@@ -219,7 +219,7 @@ def run_non_homograph_tests() -> None:
         passed = (result is False)
         status = "PASS" if passed else "FAIL"
 
-        print(f"\nPath:      {path}")
+        print(f"\nPath:        {path}")
         print(f"Explanation: {explanation}")
         print(f"Canonical:   {canon}")
         print(f"Expected:    False")
@@ -242,7 +242,7 @@ def run_homograph_tests() -> None:
         passed = (result is True)
         status = "PASS" if passed else "FAIL"
 
-        print(f"\nPath:      {path}")
+        print(f"\nPath:        {path}")
         print(f"Explanation: {explanation}")
         print(f"Canonical:   {canon}")
         print(f"Expected:    True")
