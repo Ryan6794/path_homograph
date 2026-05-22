@@ -152,26 +152,26 @@ FORBIDDEN_FILE = "/home/user/secret/password.txt"
 NON_HOMOGRAPHS = [
     # Basic wrong directory / wrong file
     ("/home/user/password.txt", "Same filename but in different directory"),
-    ("../password.txt", "Goes up only one level from cwd, wrong directory"),
-    ("/home/user/secret/password.bak",  "Different file extension"),
+    ("/home/user/secret/password.bak", "Different file extension"),
 
-    # Double slash cases (must not reslove to forbidden file
-    ("/home//user/secret/passwords.txt", "Extra slash in path, different filename"),
+    # Double slash cases resolving to different files
+    ("/home//user/secret/passwords.txt", "Extra slash in path, but different filename"),
     ("/home/user//secret2/password.txt", "Extra slash in path, different directory"),
-    ("//home/user/secret/passwords.txt", "Extra leading slash, different filename"),
+    ("//home/user/secret/passwords.txt", "Extra leading slash, but different filename"),
 
-    # Trailing slash cases
-    ("/home/user/secret/password.txt/", "Trailing slash forces directory, not a file"),
-    ("/home'user/secret/password.txt////", "Multiple trailing slashes, go to directory, not a file"),
+    # Trailing slash cases (Now correctly PASSES with the fixed canonicalize function)
+    ("/home/user/secret/password.txt/", "Trailing slash forces directory lookup, fails or differs"),
+    ("/home/user/secret/password.txt////", "Multiple trailing slashes force directory lookup"),
 
-    #Similar-looking directory names
+    # Similar-looking directory names
     ("/home/user/secrets/password.txt", "Directory 'secrets' is not 'secret'"),
     ("/home/user/secret1/password.txt", "Directory name differs by one character"),
     ("/home/user/secret/passwords.txt", "Filename pluralized"),
 
-    # Wrong number of ..
-    ("../../user/secret/password.txt", "Relative path does not reach /home"),
-    ("./secret/../password.txt", "Navigates incorrectly; ends in wrong directory"),
+    # Dots that change the resource completely
+    ("/home/user/secret/password.txt.", "Linux treats trailing dot as a unique extension character"),
+    ("../password.txt", "Resolves to /home/user/password.txt (wrong directory)"),
+    ("./secret/../password.txt", "Resolves to /home/user/cse453/password.txt (wrong directory)"),
 
     # Hidden file / misleading name
     ("/home/user/secret/.password.txt", "Hidden file, not the forbidden file"),
@@ -181,27 +181,23 @@ NON_HOMOGRAPHS = [
 # Homographs: paths that are DIFFERENT strings but refer to the SAME resource
 # Format: (path_string, explanation)
 HOMOGRAPHS = [
-    # Basic redundant navigation
-    ("./../secret/password.txt", "Dot then double-dot resolves to /home/user/secret/password.txt"),
-    ("../../cse453/../secret/password.txt", "Extra navigation cancels out"),
-    ("/home/user/secret/../secret/password.txt", "Redundant directory traversal"),
+    # Relative path navigation from CWD (/home/user/cse453)
+    ("../../user/secret/password.txt", "Goes up to /home, then down into user/secret/password.txt"),
+    ("../secret/password.txt", "Goes up to /home/user, then down into secret/password.txt"),
+    
+    # Absolute redundant directory traversal
+    ("/home/user/secret/../secret/password.txt", "Absolute redundant directory traversal"),
     
     # Double slashes that still resolve to the same file
-    ("/home//user/secret/password.txt", "Double slash normalizes to single slash"),
-    ("//home/user/secret/password.txt", "Double slash at root still resolves to same path"),
-    ("/home/user//secret//password.txt", "Multiple double slashes normalize"),
+    ("/home//user/secret/password.txt", "Internal duplicate slashes are ignored by POSIX standard"),
+    ("//home/user/secret/password.txt", "Double slash at root resolves to root in Linux"),
+    ("/home/user//secret//password.txt", "Multiple internal double slashes normalize cleanly"),
 
-    # Mixed realitive and absolute paths
-    ("./home/user/secret/./password.txt", "Starts relative but resolves to same absolute path"),
-    ("../user/secret/./password.txt", "Relative navigation resolves correctly"),
-    ("home/user/secret/password.txt", "Relative path from assumed cwd"),
-
-    # Trailing dots / redundant dots
-    ("/home/user/secret/password.txt.", "Trailing dot ignored by canonicalizer"),
-    ("/home/user/secret/./password.txt", "Redundant current-directory reference"),
-    ("/home/user/secret/password.txt..", "Double trailing dots collapse to same file"),
+    # Redundant current directory dots
+    ("/home/user/secret/./password.txt", "Redundant single-dot current-directory reference is ignored"),
+    ("/home/./user/./secret/./password.txt", "Multiple mid-path single dots cleanly normalize away"),
 ]
- 
+
 # Test runner functions 
 
 def run_non_homograph_tests() -> None:
