@@ -84,49 +84,104 @@ FORBIDDEN_FILE = "/home/user/secret/password.txt"
 # Non-Homographs: paths that look similar but are DIFFERENT resources
 # Format: (path_string, explanation)
 NON_HOMOGRAPHS = [
-    # TODO (Person 2): Fill in with 2-3 test cases per construct. Examples:
-    ("/home/user/password.txt",         "Same filename but in a different directory"),
-    ("../password.txt",                 "Goes up only one level from cwd, wrong directory"),
+    # Basic wrong directory / wrong file
+    ("/home/user/password.txt", "Same filename but in different directory"),
+    ("../password.txt", "Goes up only one level from cwd, wrong directory"),
     ("/home/user/secret/password.bak",  "Different file extension"),
-    # TODO: Add cases for: double slash, trailing slash leading to different file,
-    #       similar-looking directory names, etc.
+
+    # Double slash cases (must not reslove to forbidden file
+    ("/home//user/secret/passwords.txt", "Extra slash in path, different filename"),
+    ("/home/user//secret2/password.txt", "Extra slash in path, different directory"),
+    ("//home/user/secret/passwords.txt", "Extra leading slash, different filename"),
+
+    # Trailing slash cases
+    ("/home/user/secret/password.txt/", "Trailing slash forces directory, not a file"),
+    ("/home'user/secret/password.txt////", "Multiple trailing slashes, go to directory, not a file"),
+
+    #Similar-looking directory names
+    ("/home/user/secrets/password.txt", "Directory 'secrets' is not 'secret'"),
+    ("/home/user/secret1/password.txt", "Directory name differs by one character"),
+    ("/home/user/secret/passwords.txt", "Filename pluralized"),
+
+    # Wrong number of ..
+    ("../../user/secret/password.txt", "Relative path does not reach /home"),
+    ("./secret/../password.txt", "Navigates incorrectly; ends in wrong directory"),
+
+    # Hidden file / misleading name
+    ("/home/user/secret/.password.txt", "Hidden file, not the forbidden file"),
+    ("/home/user/secret/password.txt.bak", "Backup file, not the real one"),
 ]
  
 # Homographs: paths that are DIFFERENT strings but refer to the SAME resource
 # Format: (path_string, explanation)
 HOMOGRAPHS = [
-    # TODO (Person 2): Fill in with 2-3 test cases per construct. Examples:
-    ("./../secret/password.txt",                    "Dot then double-dot resolves correctly"),
-    ("../../cse453/../secret/password.txt",         "Extra navigation that cancels out"),
-    ("/home/user/secret/../secret/password.txt",    "Redundant directory traversal"),
-    # TODO: Add cases for: double slashes, trailing dots, mixed relative+absolute, etc.
+    # Basic redundant navigation
+    ("./../secret/password.txt", "Dot then double-dot resolves to /home/user/secret/password.txt"),
+    ("../../cse453/../secret/password.txt", "Extra navigation cancels out"),
+    ("/home/user/secret/../secret/password.txt", "Redundant directory traversal"),
+    
+    # Double slashes that still resolve to the same file
+    ("/home//user/secret/password.txt", "Double slash normalizes to single slash"),
+    ("//home/user/secret/password.txt", "Double slash at root still resolves to same path"),
+    ("/home/user//secret//password.txt", "Multiple double slashes normalize"),
+
+    # Mixed realitive and absolute paths
+    ("./home/user/secret/./password.txt", "Starts relative but resolves to same absolute path"),
+    ("../user/secret/./password.txt", "Relative navigation resolves correctly"),
+    ("home/user/secret/password.txt", "Relative path from assumed cwd"),
+
+    # Trailing dots / redundant dots
+    ("/home/user/secret/password.txt.", "Trailing dot ignored by canonicalizer"),
+    ("/home/user/secret/./password.txt", "Redundant current-directory reference"),
+    ("/home/user/secret/password.txt..", "Double trailing dots collapse to same file"),
 ]
  
- 
+# Test runner functions 
+
 def run_non_homograph_tests() -> None:
     """
-    TODO (Person 2):
+    (Person 2):
         For each (path, explanation) in NON_HOMOGRAPHS:
           1. Call is_homograph(path, FORBIDDEN_FILE)
           2. Assert/check that the result is FALSE
           3. Print the path, explanation, canonical form, and PASS/FAIL result
     """
     print("\n=== NON-HOMOGRAPH TEST CASES ===")
-    # TODO: implement loop and output
-    pass
+    for path, explanation in NON_HOMOGRAPHS:
+        result = is_homograph(path, FORBIDDEN_FILE)
+        canon = canonicalize(path)
+        passed = (result is False)
+        status = "PASS" if passed else "FAIL"
+
+        print(f"\nPath:      {path}")
+        print(f"Explanation: {explanation}")
+        print(f"Canonical:   {canon}")
+        print(f"Expected:    False")
+        print(f"Result:      {result}")
+        print(f"Status:      {status}")
  
  
 def run_homograph_tests() -> None:
     """
-    TODO (Person 2):
+    (Person 2):
         For each (path, explanation) in HOMOGRAPHS:
           1. Call is_homograph(path, FORBIDDEN_FILE)
           2. Assert/check that the result is TRUE
           3. Print the path, explanation, canonical form, and PASS/FAIL result
     """
     print("\n=== HOMOGRAPH TEST CASES ===")
-    # TODO: implement loop and output
-    pass
+    for path, explanation in HOMOGRAPHS:
+        result = is_homograph(path, FORBIDDEN_FILE)
+        canon = canonicalize(path)
+        passed = (result is True)
+        status = "PASS" if passed else "FAIL"
+
+        print(f"\nPath:      {path}")
+        print(f"Explanation: {explanation}")
+        print(f"Canonical:   {canon}")
+        print(f"Expected:    True")
+        print(f"Result:      {result}")
+        print(f"Status:      {status}")
  
  
 # =============================================================================
