@@ -13,7 +13,7 @@ Theoretical Framework:
   r  = rendition      -> a file handle (we do NOT actually open files here)
   R()= rendering func -> would be open(e, 'r'), but we avoid it per instructions
   c  = canon          -> the absolute, normalized path (our chosen canonical form)
-  C()= canonicalization function -> converts e into c  [Person 1]
+  C()= canonicalization function -> converts e into c
   H()= homograph function        -> returns True if two encodings map to same c  [Person 3]
 """
 
@@ -21,7 +21,7 @@ Theoretical Framework:
 
 
 # =============================================================================
-# PERSON 1 — Canonicalization (C function) + Path Symbol Research
+# Canonicalization (C function) + Path Symbol Research
 # =============================================================================
 # TASK OVERVIEW:
 #   Research all Linux path symbols: / .. . ~ (home), symlinks, trailing slashes,
@@ -52,7 +52,6 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
     Returns:
         A canonical absolute path string (the canon 'c')
  
-    TODO (Person 1):
         1. Handle ~ expansion to HOME_DIRECTORY
         2. If path is relative (doesn't start with /), prepend cwd
         3. Split the path on '/'
@@ -63,9 +62,76 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
         5. Reassemble with '/' and ensure it starts with '/'
         6. Return the canonical string
     """
-    # TODO: implement canonicalization logic here
-    pass
+    
+
+    # Step 1: Remove leading and trailing whitespace
+    path = path.strip()
  
+
+    # Step 2: Expand the tilde (~) to the home directory.
+    #   "~"        -> expand to HOME_DIRECTORY exactly
+    #   "~/..."    -> replace ~ with HOME_DIRECTORY
+    #   anything else starting with ~ is left alone (edge case)
+    if path == "~":
+        path = HOME_DIRECTORY
+    elif path.startswith("~/"):
+        # Replace only the leading ~ so the rest of the path is preserved
+        path = HOME_DIRECTORY + path[1:]  # path[1:] keeps the '/' and everything after
+
+
+    # Step 3: If the path is relative (doesn't start with '/'), prepend the cwd
+    # Examples of relative paths:
+    #   "secret/password.txt"       -> relative to cwd
+    #   "../secret/password.txt"    -> relative to cwd, then up one level
+    #   "./secret/password.txt"     -> relative to cwd (. = cwd itself)
+    if not path.startswith("/"):
+        path = cwd + "/" + path  # Prepend cwd and ensure there's a slash
+
+
+    # Step 4: Split the full path string on the '/' separator.
+    # Example:
+        #   "/home/user/../secret/password.txt".split("/")
+        #   -> ['', 'home', 'user', '..', 'secret', 'password.txt']
+    segments = path.split("/")
+
+
+    # Step 5: Walk through segments and resolve . and .. using a stack.
+    stack = []  # Holds the resolved path components (no slashes stored here)
+ 
+    for segment in segments:
+ 
+        if segment == "" or segment == ".":
+            # Empty string: result of splitting on '/' at the start, end,
+            # or anywhere there are consecutive slashes (e.g. //).
+            # Single dot: means "current directory" — nothing changes.
+            # Either way, we skip and move on.
+            continue
+ 
+        elif segment == "..":
+            # Double dot: move up one directory level.
+            # If the stack is non-empty, remove the last component.
+            # If the stack IS empty, we're already at root — stay there.
+            # (You cannot go above / on Linux.)
+            if stack:
+                stack.pop()
+            # If stack is empty, do nothing — we're at root already
+ 
+        else:
+            # Normal directory name or filename — add it to our path stack.
+            stack.append(segment)
+
+    # Step 6: Reassemble the canonical path with '/' and ensure it starts with '/'# Step 6: Reassemble the canonical path from the stack.
+    # Join all components with '/' and prepend the root '/'.
+    # Examples:
+    #   stack = ['home', 'user', 'secret', 'password.txt']
+    #   -> "/home/user/secret/password.txt"
+    #
+    #   stack = []  (path resolved to root)
+    #   -> "/"
+    canonical_path = "/" + "/".join(stack)
+ 
+    return canonical_path
+
  
 # =============================================================================
 # PERSON 2 — Test Cases (Homographs & Non-Homographs) + Test Runner Functions
