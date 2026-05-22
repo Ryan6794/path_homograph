@@ -13,7 +13,7 @@ Theoretical Framework:
   r  = rendition      -> a file handle (we do NOT actually open files here)
   R()= rendering func -> would be open(e, 'r'), but we avoid it per instructions
   c  = canon          -> the absolute, normalized path (our chosen canonical form)
-  C()= canonicalization function -> converts e into c  [Person 1]
+  C()= canonicalization function -> converts e into c
   H()= homograph function        -> returns True if two encodings map to same c  [Person 3]
 """
 
@@ -21,7 +21,7 @@ Theoretical Framework:
 
 
 # =============================================================================
-# PERSON 1 — Canonicalization (C function) + Path Symbol Research
+# Canonicalization (C function) + Path Symbol Research
 # =============================================================================
 # TASK OVERVIEW:
 #   Research all Linux path symbols: / .. . ~ (home), symlinks, trailing slashes,
@@ -36,37 +36,103 @@ Theoretical Framework:
 #   //         -> treated same as / on Linux
 #   trailing / -> strip it (usually)
 #   ~          -> expand to home directory (hardcode or accept as input)
- 
+
 CURRENT_WORKING_DIRECTORY = "/home/user/cse453"  # Set agreed-upon CWD for test cases
 HOME_DIRECTORY = "/home/user"                     # Used if ~ expansion is implemented
- 
- 
+
+
 def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
     """
     C() — Convert a raw file path encoding into its canonical absolute form.
- 
+
     Args:
         path: The raw input path string (the encoding 'e')
         cwd:  The current working directory (needed for relative paths)
- 
+
     Returns:
         A canonical absolute path string (the canon 'c')
- 
-    TODO (Person 1):
+
         1. Handle ~ expansion to HOME_DIRECTORY
         2. If path is relative (doesn't start with /), prepend cwd
         3. Split the path on '/'
         4. Iterate through each segment:
-             - skip empty segments and '.' segments
-             - on '..' pop the last element from the result stack (if stack is non-empty)
-             - otherwise push the segment onto the result stack
+            - skip empty segments and '.' segments
+            - on '..' pop the last element from the result stack (if stack is non-empty)
+            - otherwise push the segment onto the result stack
         5. Reassemble with '/' and ensure it starts with '/'
         6. Return the canonical string
     """
-    # TODO: implement canonicalization logic here
-    pass
- 
- 
+    
+
+    # Step 1: Remove leading and trailing whitespace
+    path = path.strip()
+
+
+    # Step 2: Expand the tilde (~) to the home directory.
+    #   "~"        -> expand to HOME_DIRECTORY exactly
+    #   "~/..."    -> replace ~ with HOME_DIRECTORY
+    #   anything else starting with ~ is left alone (edge case)
+    if path == "~":
+        path = HOME_DIRECTORY
+    elif path.startswith("~/"):
+        # Replace only the leading ~ so the rest of the path is preserved
+        path = HOME_DIRECTORY + path[1:]  # path[1:] keeps the '/' and everything after
+
+
+    # Step 3: If the path is relative (doesn't start with '/'), prepend the cwd
+    # Examples of relative paths:
+    #   "secret/password.txt"       -> relative to cwd
+    #   "../secret/password.txt"    -> relative to cwd, then up one level
+    #   "./secret/password.txt"     -> relative to cwd (. = cwd itself)
+    if not path.startswith("/"):
+        path = cwd + "/" + path  # Prepend cwd and ensure there's a slash
+
+
+    # Step 4: Split the full path string on the '/' separator.
+    # Example:
+        #   "/home/user/../secret/password.txt".split("/")
+        #   -> ['', 'home', 'user', '..', 'secret', 'password.txt']
+    segments = path.split("/")
+
+
+    # Step 5: Walk through segments and resolve . and .. using a stack.
+    stack = []  # Holds the resolved path components (no slashes stored here)
+
+    for segment in segments:
+
+        if segment == "" or segment == ".":
+            # Empty string: result of splitting on '/' at the start, end,
+            # or anywhere there are consecutive slashes (e.g. //).
+            # Single dot: means "current directory" — nothing changes.
+            # Either way, we skip and move on.
+            continue
+
+        elif segment == "..":
+            # Double dot: move up one directory level.
+            # If the stack is non-empty, remove the last component.
+            # If the stack IS empty, we're already at root — stay there.
+            # (You cannot go above / on Linux.)
+            if stack:
+                stack.pop()
+            # If stack is empty, do nothing — we're at root already
+
+        else:
+            # Normal directory name or filename — add it to our path stack.
+            stack.append(segment)
+
+    # Step 6: Reassemble the canonical path with '/' and ensure it starts with '/'# Step 6: Reassemble the canonical path from the stack.
+    # Join all components with '/' and prepend the root '/'.
+    # Examples:
+    #   stack = ['home', 'user', 'secret', 'password.txt']
+    #   -> "/home/user/secret/password.txt"
+    #
+    #   stack = []  (path resolved to root)
+    #   -> "/"
+    canonical_path = "/" + "/".join(stack)
+
+    return canonical_path
+
+
 # =============================================================================
 # PERSON 2 — Test Cases (Homographs & Non-Homographs) + Test Runner Functions
 # =============================================================================
@@ -210,18 +276,21 @@ def is_homograph(path1: str, path2: str, cwd: str = CURRENT_WORKING_DIRECTORY) -
         True  if C(path1) == C(path2)  (they ARE homographs)
         False otherwise
  
-    TODO (Person 3):
+    (Person 3):
         1. Call canonicalize(path1, cwd) -> canon1
         2. Call canonicalize(path2, cwd) -> canon2
         3. Return canon1 == canon2
     """
-    # TODO: implement homograph detection here
-    pass
+    canon1 = canonicalize(path1, cwd)
+    canon2 = canonicalize(path2, cwd)
+
+    # Seeing if they are the same
+    return canon1 == canon2
  
  
 def manual_comparison() -> None:
     """
-    TODO (Person 3):
+    (Person 3):
         Prompt the user for two file paths.
         Call is_homograph() on them.
         Print both canonical forms and whether they are homographs.
@@ -233,13 +302,29 @@ def manual_comparison() -> None:
         Canon 2: /home/user/secret/password.txt
         The paths ARE homographs.
     """
-    # TODO: implement manual comparison here
-    pass
+
+    # Striping just in case
+    path1 = input("What is the first file:").strip()
+    path2 = input("What is the second file:").strip()
+
+    canon1 = canonicalize(path1)
+    canon2 = canonicalize(path2)
+
+    same = is_homograph(path1, path2)
+
+    print(f"This is file 1: {canon1}")
+    print(f"This is file 2: {canon2}")
+
+    if same:
+        print("They are homographs!!")
+    else:
+        print("They are not homographs")
+
  
  
 def display_menu() -> None:
     """
-    TODO (Person 3):
+    (Person 3):
         Print the menu options clearly.
  
     Menu:
@@ -264,19 +349,30 @@ def display_menu() -> None:
  
 def main() -> None:
     """
-    TODO (Person 3):
+    (Person 3):
         Main loop — display menu, get user input, route to correct function.
         Loop until the user selects Quit.
         Handle invalid input gracefully.
     """
-    # TODO: implement menu loop here
-    pass
+    starting = True
+    
+
+    while starting:
+        display_menu()
+        choice = input("Select option:")
+
+        if choice == "1":
+            run_non_homograph_tests()
+        elif choice == "2":
+            run_homograph_tests()
+        elif choice == "3":
+            manual_comparison()
+        elif choice == "4":
+            print("Thank you! See you soon!")
+            starting = False
+        else:
+            print("ERROR: Try a number between 1 and 4")
  
- 
-
-
-
-
 
 if __name__ == "__main__":
     main()
