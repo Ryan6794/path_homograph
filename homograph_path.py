@@ -36,29 +36,29 @@ Theoretical Framework:
 #   //         -> treated same as / on Linux
 #   trailing / -> strip it (usually)
 #   ~          -> expand to home directory (hardcode or accept as input)
- 
+
 CURRENT_WORKING_DIRECTORY = "/home/user/cse453"  # Set agreed-upon CWD for test cases
 HOME_DIRECTORY = "/home/user"                     # Used if ~ expansion is implemented
- 
- 
+
+
 def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
     """
     C() — Convert a raw file path encoding into its canonical absolute form.
- 
+
     Args:
         path: The raw input path string (the encoding 'e')
         cwd:  The current working directory (needed for relative paths)
- 
+
     Returns:
         A canonical absolute path string (the canon 'c')
- 
+
         1. Handle ~ expansion to HOME_DIRECTORY
         2. If path is relative (doesn't start with /), prepend cwd
         3. Split the path on '/'
         4. Iterate through each segment:
-             - skip empty segments and '.' segments
-             - on '..' pop the last element from the result stack (if stack is non-empty)
-             - otherwise push the segment onto the result stack
+            - skip empty segments and '.' segments
+            - on '..' pop the last element from the result stack (if stack is non-empty)
+            - otherwise push the segment onto the result stack
         5. Reassemble with '/' and ensure it starts with '/'
         6. Return the canonical string
     """
@@ -66,7 +66,7 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
 
     # Step 1: Remove leading and trailing whitespace
     path = path.strip()
- 
+
 
     # Step 2: Expand the tilde (~) to the home directory.
     #   "~"        -> expand to HOME_DIRECTORY exactly
@@ -97,16 +97,16 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
 
     # Step 5: Walk through segments and resolve . and .. using a stack.
     stack = []  # Holds the resolved path components (no slashes stored here)
- 
+
     for segment in segments:
- 
+
         if segment == "" or segment == ".":
             # Empty string: result of splitting on '/' at the start, end,
             # or anywhere there are consecutive slashes (e.g. //).
             # Single dot: means "current directory" — nothing changes.
             # Either way, we skip and move on.
             continue
- 
+
         elif segment == "..":
             # Double dot: move up one directory level.
             # If the stack is non-empty, remove the last component.
@@ -115,7 +115,7 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
             if stack:
                 stack.pop()
             # If stack is empty, do nothing — we're at root already
- 
+
         else:
             # Normal directory name or filename — add it to our path stack.
             stack.append(segment)
@@ -129,10 +129,10 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
     #   stack = []  (path resolved to root)
     #   -> "/"
     canonical_path = "/" + "/".join(stack)
- 
+
     return canonical_path
 
- 
+
 # =============================================================================
 # PERSON 2 — Test Cases (Homographs & Non-Homographs) + Test Runner Functions
 # =============================================================================
