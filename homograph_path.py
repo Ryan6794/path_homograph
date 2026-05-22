@@ -144,9 +144,9 @@ def canonicalize(path: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> str:
 #
 # GOAL:
 #   Cover every Linux path symbol with 2-3 test cases per construct (per instructions).
- 
+
 FORBIDDEN_FILE = "/home/user/secret/password.txt"
- 
+
 # Non-Homographs: paths that look similar but are DIFFERENT resources
 # Format: (path_string, explanation)
 NON_HOMOGRAPHS = [
@@ -177,7 +177,7 @@ NON_HOMOGRAPHS = [
     ("/home/user/secret/.password.txt", "Hidden file, not the forbidden file"),
     ("/home/user/secret/password.txt.bak", "Backup file, not the real one"),
 ]
- 
+
 # Homographs: paths that are DIFFERENT strings but refer to the SAME resource
 # Format: (path_string, explanation)
 HOMOGRAPHS = [
@@ -204,9 +204,9 @@ def run_non_homograph_tests() -> None:
     """
     (Person 2):
         For each (path, explanation) in NON_HOMOGRAPHS:
-          1. Call is_homograph(path, FORBIDDEN_FILE)
-          2. Assert/check that the result is FALSE
-          3. Print the path, explanation, canonical form, and PASS/FAIL result
+        1. Call is_homograph(path, FORBIDDEN_FILE)
+        2. Assert/check that the result is FALSE
+        3. Print the path, explanation, canonical form, and PASS/FAIL result
     """
     print("\n=== NON-HOMOGRAPH TEST CASES ===")
     for path, explanation in NON_HOMOGRAPHS:
@@ -227,9 +227,9 @@ def run_homograph_tests() -> None:
     """
     (Person 2):
         For each (path, explanation) in HOMOGRAPHS:
-          1. Call is_homograph(path, FORBIDDEN_FILE)
-          2. Assert/check that the result is TRUE
-          3. Print the path, explanation, canonical form, and PASS/FAIL result
+        1. Call is_homograph(path, FORBIDDEN_FILE)
+        2. Assert/check that the result is TRUE
+        3. Print the path, explanation, canonical form, and PASS/FAIL result
     """
     print("\n=== HOMOGRAPH TEST CASES ===")
     for path, explanation in HOMOGRAPHS:
@@ -258,20 +258,20 @@ def run_homograph_tests() -> None:
 #     (4) Quit
 #
 # NOTE: is_homograph() must call canonicalize() — do NOT compare raw strings.
- 
+
 def is_homograph(path1: str, path2: str, cwd: str = CURRENT_WORKING_DIRECTORY) -> bool:
     """
     H() — Determine if two path encodings refer to the same resource.
- 
+
     Args:
         path1: First path encoding (e1)
         path2: Second path encoding (e2)
         cwd:   Current working directory for resolving relative paths
- 
+
     Returns:
         True  if C(path1) == C(path2)  (they ARE homographs)
         False otherwise
- 
+
     (Person 3):
         1. Call canonicalize(path1, cwd) -> canon1
         2. Call canonicalize(path2, cwd) -> canon2
@@ -282,15 +282,15 @@ def is_homograph(path1: str, path2: str, cwd: str = CURRENT_WORKING_DIRECTORY) -
 
     # Seeing if they are the same
     return canon1 == canon2
- 
- 
+
+
 def manual_comparison() -> None:
     """
     (Person 3):
         Prompt the user for two file paths.
         Call is_homograph() on them.
         Print both canonical forms and whether they are homographs.
- 
+
     Example output:
         Specify the first filename:  ../../secret/password.txt
         Specify the second filename: /home/user/secret/password.txt
@@ -316,16 +316,16 @@ def manual_comparison() -> None:
     else:
         print("They are not homographs")
 
- 
- 
+
+
 def display_menu() -> None:
     """
     (Person 3):
         Print the menu options clearly.
- 
+
     Menu:
         ================================
-         Path Homograph Detector - Lab05
+        Path Homograph Detector - Lab05
         ================================
         1. Run Non-Homograph Test Cases
         2. Run Homograph Test Cases
@@ -341,8 +341,8 @@ def display_menu() -> None:
     print("3. Manually Compare Two Paths")
     print("4. Quit")
     print("================================")
- 
- 
+
+
 def main() -> None:
     """
     (Person 3):
@@ -368,8 +368,7 @@ def main() -> None:
             starting = False
         else:
             print("ERROR: Try a number between 1 and 4")
- 
+
 
 if __name__ == "__main__":
     main()
- 
