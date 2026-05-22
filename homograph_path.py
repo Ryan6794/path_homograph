@@ -155,18 +155,21 @@ def is_homograph(path1: str, path2: str, cwd: str = CURRENT_WORKING_DIRECTORY) -
         True  if C(path1) == C(path2)  (they ARE homographs)
         False otherwise
  
-    TODO (Person 3):
+    (Person 3):
         1. Call canonicalize(path1, cwd) -> canon1
         2. Call canonicalize(path2, cwd) -> canon2
         3. Return canon1 == canon2
     """
-    # TODO: implement homograph detection here
-    pass
+    canon1 = canonicalize(path1, cwd)
+    canon2 = canonicalize(path2, cwd)
+
+    # Seeing if they are the same
+    return canon1 == canon2
  
  
 def manual_comparison() -> None:
     """
-    TODO (Person 3):
+    (Person 3):
         Prompt the user for two file paths.
         Call is_homograph() on them.
         Print both canonical forms and whether they are homographs.
@@ -178,13 +181,29 @@ def manual_comparison() -> None:
         Canon 2: /home/user/secret/password.txt
         The paths ARE homographs.
     """
-    # TODO: implement manual comparison here
-    pass
+
+    # Striping just in case
+    path1 = input("What is the first file:").strip()
+    path2 = input("What is the second file:").strip()
+
+    canon1 = canonicalize(path1)
+    canon2 = canonicalize(path2)
+
+    same = is_homograph(path1, path2)
+
+    print(f"This is file 1: {canon1}")
+    print(f"This is file 2: {canon2}")
+
+    if same:
+        print("They are homographs!!")
+    else:
+        print("They are not homographs")
+
  
  
 def display_menu() -> None:
     """
-    TODO (Person 3):
+    (Person 3):
         Print the menu options clearly.
  
     Menu:
@@ -209,19 +228,30 @@ def display_menu() -> None:
  
 def main() -> None:
     """
-    TODO (Person 3):
+    (Person 3):
         Main loop — display menu, get user input, route to correct function.
         Loop until the user selects Quit.
         Handle invalid input gracefully.
     """
-    # TODO: implement menu loop here
-    pass
+    starting = True
+    
+
+    while starting:
+        display_menu()
+        choice = input("Select option:")
+
+        if choice == "1":
+            run_non_homograph_tests()
+        elif choice == "2":
+            run_homograph_tests()
+        elif choice == "3":
+            manual_comparison()
+        elif choice == "4":
+            print("Thank you! See you soon!")
+            starting = False
+        else:
+            print("ERROR: Try a number between 1 and 4")
  
- 
-
-
-
-
 
 if __name__ == "__main__":
     main()
